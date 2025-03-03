@@ -1,63 +1,50 @@
 document.getElementById('processButton').addEventListener('click', async () => {
-    const fileInput = document.getElementById('fileInput');
-    const minutes = document.getElementById('minutes').value;
-    const seconds = document.getElementById('seconds').value;
+    const fileInput = document.getElementById('videoFile');
+    const minutes = parseInt(document.getElementById('minutes').value) || 0;
+    const seconds = parseInt(document.getElementById('seconds').value) || 0;
 
     if (fileInput.files.length === 0) {
-        alert('ファイルを選択してください。');
-        return;
-    }
-
-    if (minutes === "" || seconds === "") {
-        alert('時間を正しく入力してください。');
+        alert('動画ファイルを選択してください。');
         return;
     }
 
     const file = fileInput.files[0];
-    const durationInMilliseconds = (parseInt(minutes) * 60 + parseInt(seconds)) * 1000;
-    const durationInDouble = new DataView(new ArrayBuffer(8));
-    durationInDouble.setFloat64(0, durationInMilliseconds, false);
-    const replacementBytes = new Uint8Array(durationInDouble.buffer);
+    const duration = (minutes * 60 + seconds) * 1000;
+    const durationBuffer = new ArrayBuffer(8);
+    const durationView = new DataView(durationBuffer);
+    durationView.setFloat64(0, duration, false);
 
     const arrayBuffer = await file.arrayBuffer();
-    const webmData = new Uint8Array(arrayBuffer);
+    const byteArray = new Uint8Array(arrayBuffer);
 
-    const targetSequence = [0x2a, 0xd7, 0xb1, 0x44, 0x89, 0x88];
-    const index = findSequenceIndex(webmData, targetSequence);
-    if (index === -1) {
-        alert('指定されたシーケンスが見つかりませんでした。');
-        return;
+    // Convert durationBuffer to byte array
+    const newDurationArray = new Uint8Array(durationBuffer);
+
+    // Find the pattern 448988 in the byte array
+    const pattern = [0x44, 0x89, 0x88];
+    let position = -1;
+    for (let i = 0; i < byteArray.length - pattern.length; i++) {
+        if (byteArray.slice(i, i + pattern.length).every((val, idx) => val === pattern[idx])) {
+            position = i + pattern.length;
+            break;
+        }
     }
 
-    console.log(`指定されたシーケンスはインデックス ${index} に見つかりました。`);
+    if (position !== -1) {
+        // Replace the 8 bytes after 448988 with the new duration
+        for (let i = 0; i < 8; i++) {
+            byteArray[position + i] = newDurationArray[i];
+        }
 
-    for (let i = 0; i < 8; i++) {
-        webmData[index + targetSequence.length + 1 + i] = replacementBytes[i];
+        const blob = new Blob([byteArray], { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+
+        const downloadLink = document.getElementById('downloadLink');
+        downloadLink.href = url;
+        downloadLink.download = 'modified_video.webm';
+        downloadLink.style.display = 'block';
+        downloadLink.textContent = 'ダウンロード';
+    } else {
+        alert('指定されたパターンが見つかりませんでした。');
     }
-
-    console.log("バイナリデータの書き換えが完了しました。");
-
-    const blob = new Blob([webmData], { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'modified_video.webm';
-    a.click();
-    URL.revokeObjectURL(url);
 });
-
-function findSequenceIndex(data, sequence) {
-    for (let i = 0; i < data.length - sequence.length; i++) {
-        let match = true;
-        for (let j = 0; j < sequence.length; j++) {
-            if (data[i + j] !== sequence[j]) {
-                match = false;
-                break;
-            }
-        }
-        if (match) {
-            return i;
-        }
-    }
-    return -1;
-}
