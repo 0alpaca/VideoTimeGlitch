@@ -2,14 +2,30 @@ document.getElementById('processButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('videoFile');
     const minutes = parseInt(document.getElementById('minutes').value) || 0;
     const seconds = parseInt(document.getElementById('seconds').value) || 0;
+    const fileError = document.getElementById('fileError');
+    const timeError = document.getElementById('timeError');
+    const downloadLinks = document.getElementById('downloadLinks');
+
+    fileError.textContent = '';
+    timeError.textContent = '';
 
     if (fileInput.files.length === 0) {
-        alert('動画ファイルを選択してください。');
+        fileError.textContent = '動画ファイルを選択してください。';
+        return;
+    }
+
+    if (seconds >= 60) {
+        timeError.textContent = '秒は0から59の間で指定してください。';
+        return;
+    }
+
+    const duration = (minutes * 60 + seconds) * 1000;
+    if (duration > Number.MAX_SAFE_INTEGER) {
+        timeError.textContent = '数字が大きすぎます。';
         return;
     }
 
     const file = fileInput.files[0];
-    const duration = (minutes * 60 + seconds) * 1000;
     const durationBuffer = new ArrayBuffer(8);
     const durationView = new DataView(durationBuffer);
     durationView.setFloat64(0, duration, false);
@@ -39,12 +55,44 @@ document.getElementById('processButton').addEventListener('click', async () => {
         const blob = new Blob([byteArray], { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
 
-        const downloadLink = document.getElementById('downloadLink');
-        downloadLink.href = url;
-        downloadLink.download = 'modified_video.webm';
-        downloadLink.style.display = 'block';
-        downloadLink.textContent = 'ダウンロード';
+        const downloadText = `ダウンロード (${file.name} ${minutes}分${seconds}秒)`;
+
+        // Check if a similar download link already exists
+        const existingLinks = Array.from(downloadLinks.getElementsByTagName('a'));
+        if (!existingLinks.some(link => link.textContent === downloadText)) {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = 'modified_video.webm';
+            downloadLink.textContent = downloadText;
+            downloadLinks.insertBefore(downloadLink, downloadLinks.firstChild);
+            downloadLinks.insertBefore(document.createElement('br'), downloadLinks.firstChild);
+        }
     } else {
         alert('指定されたパターンが見つかりませんでした。');
     }
 });
+
+document.getElementById('videoFile').addEventListener('change', () => {
+    document.getElementById('fileError').textContent = '';
+    document.getElementById('timeError').textContent = '';
+});
+
+function checkInputs() {
+    const secondsInput = document.getElementById('seconds');
+    const processButton = document.getElementById('processButton');
+    const timeError = document.getElementById('timeError');
+    const minutes = parseInt(document.getElementById('minutes').value) || 0;
+    const seconds = parseInt(secondsInput.value) || 0;
+    const duration = (minutes * 60 + seconds) * 1000;
+
+    if (seconds >= 60) {
+        timeError.textContent = '秒は0から59の間で指定してください。';
+        processButton.disabled = true;
+    } else if (duration > Number.MAX_SAFE_INTEGER) {
+        timeError.textContent = '数字が大きすぎます。';
+        processButton.disabled = true;
+    } else {
+        timeError.textContent = '';
+        processButton.disabled = false;
+    }
+}
