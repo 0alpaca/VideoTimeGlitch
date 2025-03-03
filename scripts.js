@@ -1,4 +1,3 @@
-console.log('読み込み完了');
 document.getElementById('processButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
     const minutes = document.getElementById('minutes').value;
@@ -30,9 +29,13 @@ document.getElementById('processButton').addEventListener('click', async () => {
         return;
     }
 
+    console.log(`指定されたシーケンスはインデックス ${index} に見つかりました。`);
+
     for (let i = 0; i < 8; i++) {
         webmData[index + targetSequence.length + 1 + i] = replacementBytes[i];
     }
+
+    console.log("バイナリデータの書き換えが完了しました。");
 
     const blob = new Blob([webmData], { type: 'video/webm' });
     const url = URL.createObjectURL(blob);
