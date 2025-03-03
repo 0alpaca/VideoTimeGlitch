@@ -1,3 +1,4 @@
+console.log('読み込み完了')
 document.getElementById('processButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
     const minutes = document.getElementById('minutes').value;
