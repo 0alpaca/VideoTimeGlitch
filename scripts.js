@@ -22,7 +22,7 @@ document.getElementById('processButton').addEventListener('click', async () => {
     const arrayBuffer = await file.arrayBuffer();
     const webmData = new Uint8Array(arrayBuffer);
 
-    const targetSequence = [0x2a, 0xb7, 0xb1, 0x44, 0x89, 0x88];
+    const targetSequence = [0x2a, 0xd7, 0xb1, 0x44, 0x89, 0x88];
     const index = findSequenceIndex(webmData, targetSequence);
     if (index === -1) {
         alert('指定されたシーケンスが見つかりませんでした。');
