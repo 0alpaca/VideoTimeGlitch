@@ -1,26 +1,34 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>webm再生時間書き換えツール</title>
+    <title>動画再生時間書き換えツール</title>
     <link rel="stylesheet" href="./styles.css">
 </head>
+
 <body>
     <div class="container">
-        <h1>webm再生時間書き換えツール</h1>
-        <div id="fileError" class="error-message"></div>
-        <input type="file" id="videoFile" accept=".webm">
+        <h1>動画再生時間書き換えツール</h1>
         <div>
-            <input type="number" id="minutes" min="0">
-            :
-            <input type="number" id="seconds" min="0" max="59" oninput="checkInputs()">
+            <div>
+                <input type="file" id="videoFile" accept=".webm">
+                <div>
+                    <code>再生時間</code>
+                    <input type="number" id="minutes" min="0" oninput="checkInputs()">
+                    <code>:</code>
+                    <input type="number" id="seconds" min="0" max="59" oninput="checkInputs()">
+                </div>
+            </div>
+            <button id="maxDurationButton">最大再生時間変動で実行</button>
+            <button id="processButton">実行</button>
         </div>
+        <div id="fileError" class="error-message"></div>
         <div id="timeError" class="error-message"></div>
-        <button id="processButton">書き換え実行</button>
-        <button id="maxDurationButton">最大再生時間変動</button>
         <div id="downloadLinks"></div>
     </div>
     <script src="./scripts.js"></script>
 </body>
+
 </html>
