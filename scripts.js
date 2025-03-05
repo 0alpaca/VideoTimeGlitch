@@ -15,13 +15,13 @@ document.getElementById('processButton').addEventListener('click', async () => {
     }
 
     if (seconds >= 60) {
-        timeError.textContent = '秒は0から59の間で指定してください。';
+        timeError.textContent = '秒数は0から59の間で指定してください。';
         return;
     }
 
     const duration = (minutes * 60 + seconds) * 1000;
     if (duration > Number.MAX_SAFE_INTEGER) {
-        timeError.textContent = '数字が大きすぎます。';
+        timeError.textContent = '数が大きすぎます。';
         return;
     }
 
